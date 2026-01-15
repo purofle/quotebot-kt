@@ -8,9 +8,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi.*
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-@OptIn(ExperimentalAtomicApi::class)
 class TdLibBot(
     private val botToken: String,
     apiId: Int,
@@ -44,12 +42,6 @@ class TdLibBot(
 
     override fun close() {
         loopJob?.cancel()
-    }
-
-    suspend fun awaitLogged() = loggedGate.await()
-
-    suspend fun getMe(): User {
-        return client.sendAwait(GetMe())
     }
 
     suspend fun getMessages(chatId: Long, messageIds: LongArray): Messages {

@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.api.objects.ReplyParameters
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.generics.TelegramClient
-import kotlin.math.pow
 
 private val logger = KotlinLogging.logger {}
 
@@ -32,7 +31,6 @@ class QuoteBot(
         if (update.message.from?.id == botUser.id) return
         if (!update.message.isCommand) return
 
-        // ✅ 这里把 suspend 的 handleCommand 丢到协程里跑
         scope.launch {
             try {
                 handleCommand(update)
@@ -42,7 +40,6 @@ class QuoteBot(
         }
     }
 
-    // ✅ 真正的 suspend
     private suspend fun handleCommand(update: Update) {
         val text = update.message.text ?: return
 
