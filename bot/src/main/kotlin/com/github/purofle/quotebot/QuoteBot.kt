@@ -70,7 +70,10 @@ class QuoteBot(
                     messageIds = messageIds
                 ).messages
 
-                val photo = QuoteDraw(messages.filterNotNull(), "C:\\Windows\\Fonts\\msyh.ttc").encodeWebp().bytes
+                val photo = QuoteDraw(
+                    messages.filterNotNull(),
+                    "C:\\Windows\\Fonts\\HarmonyOS_Sans_SC_Regular.ttf"
+                ).encodeWebp().bytes
 
                 val msg = SendSticker.builder()
                     .chatId(update.message.chatId)

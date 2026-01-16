@@ -3,7 +3,7 @@ package com.github.purofle.quotebot.render
 import org.drinkless.tdlib.TdApi
 import org.jetbrains.skia.*
 
-class QuoteDraw(private val messages: List<TdApi.Message>, font: String) {
+class QuoteDraw(private val messages: List<TdApi.Message>, fontFile: String) {
 
     val scale = 1f
 
@@ -13,9 +13,14 @@ class QuoteDraw(private val messages: List<TdApi.Message>, font: String) {
 
     val fontsize = 18f * scale
 
-    val font = Font(FontMgr.default.makeFromFile(font)!!, fontsize)
+    val font: Font = Font(FontMgr.default.makeFromFile(fontFile)!!, fontsize)
 
     lateinit var canvas: Canvas
+
+    init {
+        font.edging = FontEdging.ANTI_ALIAS
+        font.isSubpixel = true
+    }
 
     private val texts: List<String> =
         messages

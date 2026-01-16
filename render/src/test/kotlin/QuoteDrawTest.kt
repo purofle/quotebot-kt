@@ -16,7 +16,7 @@ fun main() {
             }
         }
     }
-    val q = QuoteDraw(listOf(stubMessage), font = "C:\\Windows\\Fonts\\msyh.ttc")
+    val q = QuoteDraw(listOf(stubMessage), fontFile = "C:\\Windows\\Fonts\\HarmonyOS_Sans_SC_Regular.ttf")
     val data = q.encodeWebp()
     Files.write(Path("out.webp"), data.bytes)
 }
