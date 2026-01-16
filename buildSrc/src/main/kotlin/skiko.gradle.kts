@@ -1,7 +1,7 @@
+package buildsrc.convention
+
 plugins {
-    id("buildsrc.convention.kotlin-jvm")
-    id("buildsrc.convention.skiko")
-    alias(libs.plugins.kotlinPluginSerialization)
+    kotlin("jvm")
 }
 
 val osName: String = System.getProperty("os.name")
@@ -23,6 +23,5 @@ val version = "0.9.37.4"
 val target = "${targetOs}-${targetArch}"
 
 dependencies {
-//    implementation(libs.bundles.kotlinxEcosystem)
-    testImplementation(kotlin("test"))
+    implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:$version")
 }

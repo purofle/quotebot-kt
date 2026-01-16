@@ -1,5 +1,6 @@
 package com.github.purofle.quotebot
 
+import com.github.purofle.quotebot.render.QuoteDraw
 import com.github.purofle.quotebot.tdlibhelper.TdLibBot
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
@@ -7,11 +8,13 @@ import org.drinkless.tdlib.TdApi
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer
 import org.telegram.telegrambots.meta.api.methods.GetMe
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.ReplyParameters
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.generics.TelegramClient
+import java.io.ByteArrayInputStream
 
 private val logger = KotlinLogging.logger {}
 
@@ -46,32 +49,41 @@ class QuoteBot(
         when {
             text.startsWith("/q") -> {
                 // 例如：/q 3
-                var limit = Regex("""^/q\s+(\d+)\s*""")
+                val limit = Regex("""^/q\s+(\d+)\s*""")
                     .find(text)
                     ?.groupValues
                     ?.getOrNull(1)
                     ?.toIntOrNull()
 
-                if (limit == null) limit = 1
-
-                val messageIds = mutableListOf<Long>()
+                val limitVal = limit ?: 1
 
                 val replyMessageId = update.message.replyToMessage.messageId
-                for (i in replyMessageId until replyMessageId + limit) {
-                    val actualMessageId = (i shl 20).toLong()
-                    messageIds += actualMessageId
+
+                val messageIds = LongArray(limitVal) { idx ->
+                    val i = replyMessageId + idx
+
+                    // actualMessageId = messageId * 2^20 = messageId << 20
+                    (i.toLong() shl 20)
                 }
 
                 val messages = tdLibBot.getMessages(
                     chatId = update.message.chatId,
-                    messageIds = messageIds.toLongArray()
+                    messageIds = messageIds
                 ).messages
-                    .filterNot { it == null }
-                    .map { (it.content as TdApi.MessageText).text }
 
-                val msg = SendMessage.builder()
+                val texts = messages.mapNotNull { msg ->
+                    val content = msg?.content
+                    val text = (content as? TdApi.MessageText)?.text
+                    text?.text ?: ""
+                }
+
+                val photo = QuoteDraw(texts.joinToString("\n")).encodeWebp(512, 512).bytes
+
+                // 回复图片
+
+                val msg = SendPhoto.builder()
                     .chatId(update.message.chatId)
-                    .text("你再Q？${messages.joinToString("\n")}")
+                    .photo(InputFile(ByteArrayInputStream(photo), "quote.webp"))
                     .replyParameters(
                         ReplyParameters.builder()
                             .chatId(update.message.chatId)

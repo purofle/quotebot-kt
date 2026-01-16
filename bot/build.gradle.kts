@@ -1,5 +1,6 @@
 plugins {
     id("buildsrc.convention.kotlin-jvm")
+    id("buildsrc.convention.skiko")
 
     application
 }
@@ -20,14 +21,14 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.kotlinLogging)
     implementation(libs.logbackClassic)
+
+
 }
 
 application {
     mainClass = "com.github.purofle.quotebot.MainKt"
 }
-repositories {
-    mavenCentral()
-}
+
 kotlin {
     jvmToolchain(21)
 }

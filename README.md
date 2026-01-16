@@ -18,7 +18,9 @@ Telegram API 需要前往 [my.telegram.org](https://my.telegram.org) 创建应�
 - [x] 获取消息
 - [ ] 贴纸包管理（`/qs`）
 ### 绘制部分
-- [ ] 绘制基本文字
+
+- [x] 绘制基本文字
+- [ ] 绘制头像，处理大小变换
 - [ ] 处理 Markdown 格式
 - [ ] 处理图片与贴纸
 - [ ] 处理回复消息
