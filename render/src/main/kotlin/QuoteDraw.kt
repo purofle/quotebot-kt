@@ -55,9 +55,14 @@ class QuoteDraw(private val messages: List<TdApi.Message>, fontFile: String) {
 
     private fun getSenderName(message: TdApi.Message): String? {
         val origin = message.forwardInfo?.origin
-        if (origin is TdApi.MessageOriginHiddenUser) {
-            val senderName = origin.senderName
-            return senderName
+        when (origin) {
+            is TdApi.MessageOriginHiddenUser -> {
+                return origin.senderName
+            }
+
+            is TdApi.MessageOriginUser -> {
+                return origin.senderUserId.toString()
+            }
         }
         return null
     }
