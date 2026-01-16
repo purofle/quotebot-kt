@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer
 import org.telegram.telegrambots.meta.api.methods.GetMe
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker
 import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.ReplyParameters
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -72,9 +72,9 @@ class QuoteBot(
 
                 val photo = QuoteDraw(messages.filterNotNull(), "C:\\Windows\\Fonts\\msyh.ttc").encodeWebp().bytes
 
-                val msg = SendPhoto.builder()
+                val msg = SendSticker.builder()
                     .chatId(update.message.chatId)
-                    .photo(InputFile(ByteArrayInputStream(photo), "quote.webp"))
+                    .sticker(InputFile(ByteArrayInputStream(photo), "quote.webp"))
                     .replyParameters(
                         ReplyParameters.builder()
                             .chatId(update.message.chatId)
