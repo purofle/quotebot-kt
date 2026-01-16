@@ -4,7 +4,6 @@ import com.github.purofle.quotebot.render.QuoteDraw
 import com.github.purofle.quotebot.tdlibhelper.TdLibBot
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
-import org.drinkless.tdlib.TdApi
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer
 import org.telegram.telegrambots.meta.api.methods.GetMe
@@ -71,15 +70,7 @@ class QuoteBot(
                     messageIds = messageIds
                 ).messages
 
-                val texts = messages.mapNotNull { msg ->
-                    val content = msg?.content
-                    val text = (content as? TdApi.MessageText)?.text
-                    text?.text ?: ""
-                }
-
-                val photo = QuoteDraw(texts.joinToString("\n")).encodeWebp(512, 512).bytes
-
-                // 回复图片
+                val photo = QuoteDraw(messages.filterNotNull()).encodeWebp().bytes
 
                 val msg = SendPhoto.builder()
                     .chatId(update.message.chatId)
