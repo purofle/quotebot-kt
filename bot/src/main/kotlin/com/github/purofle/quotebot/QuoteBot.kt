@@ -70,7 +70,7 @@ class QuoteBot(
                     messageIds = messageIds
                 ).messages
 
-                val photo = QuoteDraw(messages.filterNotNull()).encodeWebp().bytes
+                val photo = QuoteDraw(messages.filterNotNull(), "C:\\Windows\\Fonts\\msyh.ttc").encodeWebp().bytes
 
                 val msg = SendPhoto.builder()
                     .chatId(update.message.chatId)
