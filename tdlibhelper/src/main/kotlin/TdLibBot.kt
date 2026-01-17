@@ -44,9 +44,10 @@ class TdLibBot(
         loopJob?.cancel()
     }
 
-    suspend fun getMessages(chatId: Long, messageIds: LongArray): Messages {
-        return client.sendAwait(GetMessages(chatId, messageIds))
-    }
+    suspend fun getMessages(chatId: Long, messageIds: LongArray): Messages =
+        client.sendAwait(GetMessages(chatId, messageIds))
+
+    suspend fun getUser(userId: Long): User = client.sendAwait(GetUser(userId))
 
     private inner class UpdateHandler : Client.ResultHandler {
         override fun onResult(obj: Object) {
