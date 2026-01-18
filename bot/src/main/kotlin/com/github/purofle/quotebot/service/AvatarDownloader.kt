@@ -6,6 +6,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.telegram.telegrambots.meta.api.methods.GetFile
+import org.telegram.telegrambots.meta.api.methods.GetUserProfilePhotos
 import org.telegram.telegrambots.meta.generics.TelegramClient
 
 private val logger = KotlinLogging.logger {}
@@ -15,9 +16,19 @@ class AvatarDownloader(
     private val telegramClient: TelegramClient,
     private val httpClient: OkHttpClient = OkHttpClient()
 ) {
-    suspend fun downloadAvatar(fileId: String): ByteArray? = withContext(Dispatchers.IO) {
+    suspend fun downloadAvatar(userId: Long): ByteArray? = withContext(Dispatchers.IO) {
         try {
-            val file = telegramClient.execute(GetFile(fileId))
+            val fileId = telegramClient.execute(
+                GetUserProfilePhotos.builder()
+                    .userId(userId)
+                    .limit(1)
+                    .offset(0)
+                    .build()
+            )
+                .photos.first().first().fileId
+
+            val file = telegramClient.execute(GetFile.builder().fileId(fileId).build())
+
             val path = file.filePath ?: return@withContext null
 
             val request = Request.Builder()

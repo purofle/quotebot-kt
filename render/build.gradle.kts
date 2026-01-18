@@ -6,5 +6,6 @@ plugins {
 
 dependencies {
     implementation(files("../libs/tdlib-java.jar"))
+    implementation(project(":tdlibhelper"))
     testImplementation(kotlin("test"))
 }

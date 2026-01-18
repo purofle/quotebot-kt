@@ -1,6 +1,7 @@
 package com.github.purofle.quotebot.service
 
 import com.github.purofle.quotebot.render.QuoteDraw
+import com.github.purofle.quotebot.tdlibhelper.QuoteUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.TdApi
@@ -16,7 +17,7 @@ class QuoteStickerService(
     private val fontPath: String = "C:\\Windows\\Fonts\\HarmonyOS_Sans_SC_Regular.ttf"
 ) {
     suspend fun generateAndSendQuoteSticker(
-        messages: List<TdApi.Message>,
+        messages: Map<QuoteUser, TdApi.Message>,
         chatId: Long,
         replyToMessageId: Int
     ) {

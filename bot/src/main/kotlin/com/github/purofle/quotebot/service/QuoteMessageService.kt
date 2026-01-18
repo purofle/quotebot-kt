@@ -2,10 +2,7 @@ package com.github.purofle.quotebot.service
 
 import com.github.purofle.quotebot.tdlibhelper.QuoteUser
 import com.github.purofle.quotebot.tdlibhelper.TdLibBot
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.drinkless.tdlib.TdApi
-
-private val logger = KotlinLogging.logger {}
 
 class QuoteMessageService(
     private val tdLibBot: TdLibBot,
@@ -22,20 +19,33 @@ class QuoteMessageService(
     }
 
     suspend fun fetchQuoteUsers(messages: List<TdApi.Message>): List<QuoteUser> {
-        return messages
-            .mapNotNull { it.forwardInfo?.origin as? TdApi.MessageOriginUser }
-            .map { tdLibBot.getUser(it.senderUserId) }
-            .map { user ->
-                val avatar = user.profilePhoto?.big?.remote?.id?.let { fileId ->
-                    avatarDownloader.downloadAvatar(fileId)
+        return messages.mapNotNull { msg ->
+            val origin = msg.forwardInfo?.origin ?: return@mapNotNull null
+
+            when (origin) {
+                is TdApi.MessageOriginUser -> {
+                    val user = tdLibBot.getUser(origin.senderUserId)
+                    val avatar = avatarDownloader.downloadAvatar(user.id)
+
+                    QuoteUser(
+                        id = user.id,
+                        fullName = listOfNotNull(user.firstName, user.lastName).joinToString(" "),
+                        avatar = avatar
+                    )
                 }
 
-                QuoteUser(
-                    id = user.id,
-                    fullName = listOfNotNull(user.firstName, user.lastName).joinToString(" "),
-                    avatar = avatar
-                )
+                is TdApi.MessageOriginHiddenUser -> {
+                    QuoteUser(
+                        id = -1L,
+                        fullName = origin.senderName,
+                        avatar = null
+                    )
+                }
+
+                else -> null
             }
+        }
     }
+
 }
 
