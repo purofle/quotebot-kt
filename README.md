@@ -20,7 +20,7 @@ Telegram API 需要前往 [my.telegram.org](https://my.telegram.org) 创建应�
 ### 绘制部分
 
 - [x] 绘制基本文字
-- [ ] 绘制头像，处理大小变换
+- [x] 绘制头像，处理大小变换
 - [ ] 处理 Markdown 格式
 - [ ] 处理图片与贴纸
 - [ ] 处理回复消息
