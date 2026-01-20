@@ -17,7 +17,7 @@ class QuoteStickerService(
     private val fontPath: String = "C:\\Windows\\Fonts\\HarmonyOS_Sans_SC_Regular.ttf"
 ) {
     suspend fun generateAndSendQuoteSticker(
-        messages: Map<QuoteUser, TdApi.Message>,
+        messages: List<Pair<QuoteUser, TdApi.Message>>,
         chatId: Long,
         replyToMessageId: Int
     ) {

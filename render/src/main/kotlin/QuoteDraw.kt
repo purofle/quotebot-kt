@@ -4,7 +4,7 @@ import com.github.purofle.quotebot.tdlibhelper.QuoteUser
 import org.drinkless.tdlib.TdApi
 import org.jetbrains.skia.*
 
-class QuoteDraw(private val messages: Map<QuoteUser, TdApi.Message>, fontFile: String) {
+class QuoteDraw(private val messages: List<Pair<QuoteUser, TdApi.Message>>, fontFile: String) {
 
     val scale = 2f
 
@@ -124,8 +124,8 @@ class QuoteDraw(private val messages: Map<QuoteUser, TdApi.Message>, fontFile: S
         var totalH = 0f
         var first = true
 
-        messages.forEach { entry ->
-            val (bubbleW, bubbleH) = measureDialogSize(entry.toPair())
+        messages.forEach { message ->
+            val (bubbleW, bubbleH) = measureDialogSize(message)
             val rowH = maxOf(avatarSize, bubbleH)
             val rowW = avatarSize + padding + bubbleW
 
@@ -142,12 +142,12 @@ class QuoteDraw(private val messages: Map<QuoteUser, TdApi.Message>, fontFile: S
 
         var endY = 0f
 
-        messages.forEach {
-            drawAvatar(endY, avatarSize, it.key)
-            drawDialog(avatarSize + padding, endY, it.toPair())
+        messages.forEach { message ->
+            drawAvatar(endY, avatarSize, message.first)
+            drawDialog(avatarSize + padding, endY, message)
 
             endY += maxOf(
-                measureDialogSize(it.toPair()).second,
+                measureDialogSize(message).second,
                 avatarSize
             ) + padding
         }

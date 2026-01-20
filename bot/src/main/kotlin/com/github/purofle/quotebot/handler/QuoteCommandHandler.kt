@@ -37,7 +37,7 @@ class QuoteCommandHandler(
         logger.debug { "Fetched ${quoteUsers.size} quote users" }
 
         quoteStickerService.generateAndSendQuoteSticker(
-            messages = quoteUsers.zip(messages).toMap(),
+            messages = quoteUsers.zip(messages),
             chatId = update.message.chatId,
             replyToMessageId = update.message.messageId
         )
