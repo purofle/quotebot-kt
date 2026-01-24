@@ -39,7 +39,7 @@ fun main() {
         )
     )
     val q = QuoteDraw(
-        stubQuoteUser.zip(stubMessage).toMap(),
+        stubQuoteUser.zip(stubMessage),
         fontFile = "C:\\Windows\\Fonts\\HarmonyOS_Sans_SC_Regular.ttf"
     )
     val data = q.encodeWebp()
