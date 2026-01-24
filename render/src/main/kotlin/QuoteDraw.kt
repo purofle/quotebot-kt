@@ -3,18 +3,25 @@ package com.github.purofle.quotebot.render
 import com.github.purofle.quotebot.tdlibhelper.QuoteUser
 import org.drinkless.tdlib.TdApi
 import org.jetbrains.skia.*
+import org.jetbrains.skia.paragraph.*
+import kotlin.math.max
 
 class QuoteDraw(private val messages: List<Pair<QuoteUser, TdApi.Message>>, fontFile: String) {
 
     val scale = 2f
 
     val avatarSize = 50f * scale
-
     val padding = 8f * scale
-
     val fontsize = 18f * scale
 
+    private val senderMsgGap = 4f * scale
+    private val maxBubbleWidth = 1000f
+
     val font: Font = Font(FontMgr.default.makeFromFile(fontFile)!!, fontsize)
+
+    private val fontCollection = FontCollection().apply {
+        setDefaultFontManager(FontMgr.default)
+    }
 
     lateinit var canvas: Canvas
 
@@ -23,12 +30,20 @@ class QuoteDraw(private val messages: List<Pair<QuoteUser, TdApi.Message>>, font
         font.isSubpixel = true
     }
 
+    private fun fontAscent(): Float = font.metrics.ascent
+
+    private fun fontLineHeightNoLeading(): Float {
+        val fm = font.metrics
+        return (fm.descent - fm.ascent)
+    }
+
+    private fun senderBlockHeight(): Float = fontLineHeightNoLeading()
+
     private fun drawAvatar(y: Float, size: Float, user: QuoteUser) {
         val centerX = size / 2f
         val centerY = y + size / 2f
         val r = size / 2f
 
-        // 先画圆底色（当图片透明/解码失败时也不会空）
         val bgPaint = Paint().apply {
             color = Color.makeRGB(40, 150, 172)
             isAntiAlias = true
@@ -63,58 +78,83 @@ class QuoteDraw(private val messages: List<Pair<QuoteUser, TdApi.Message>>, font
         }
 
         val ch = user.fullName.first().toString()
-        val bounds = font.measureText(ch)
+        val w = font.measureText(ch).width
+        val textX = centerX - w / 2f
 
-        val textX = centerX - (bounds.left + bounds.right) / 2f
-        val baselineY = centerY - (bounds.top + bounds.bottom) / 2f
+        val fm = font.metrics
+        val baselineY = centerY - (fm.ascent + fm.descent) / 2f
 
         canvas.drawTextLine(TextLine.make(ch, font), textX, baselineY, textPaint)
     }
 
+    private fun createParagraph(text: String, width: Float): Paragraph {
+        val paragraphStyle = ParagraphStyle()
+        val textStyle = TextStyle().apply {
+            color = Color.WHITE
+            fontSize = fontsize
+            typeface = font.typeface
+        }
+        return ParagraphBuilder(paragraphStyle, fontCollection).apply {
+            pushStyle(textStyle)
+            addText(text)
+        }.build().also { it.layout(width) }
+    }
 
     private fun drawDialog(bubbleX: Float, bubbleY: Float, message: Pair<QuoteUser, TdApi.Message>) {
         val sender = message.first.fullName
         val text = (message.second.content as TdApi.MessageText).text.text
 
         val (bubbleW, bubbleH) = measureDialogSize(message)
-        val textBounds = font.measureText(text)
-        val senderBounds = font.measureText(sender)
 
         val radius = 12f
         val backgroundPaint = Paint().apply {
             color = Color.makeRGB(26, 20, 41)
             isAntiAlias = true
         }
-        val bubble = RRect.makeXYWH(bubbleX, bubbleY, bubbleW, bubbleH, radius, radius)
-        canvas.drawRRect(bubble, backgroundPaint)
+        canvas.drawRRect(RRect.makeXYWH(bubbleX, bubbleY, bubbleW, bubbleH, radius, radius), backgroundPaint)
 
         val textPaint = Paint().apply {
             color = Color.WHITE
             isAntiAlias = true
         }
 
-        val senderLine = TextLine.make(sender, font)
-        val senderX = bubbleX + padding * 2
-        val senderTopY = bubbleY + padding * 2
-        val senderBaselineY = senderTopY - senderBounds.top
-        canvas.drawTextLine(senderLine, senderX, senderBaselineY, textPaint)
+        val innerX = bubbleX + padding * 2
+        val innerTop = bubbleY + padding * 2
 
-        val messageLine = TextLine.make(text, font)
-        val messageX = bubbleX + padding * 2
-        val messageTopY = senderTopY + senderBounds.height + padding * 1
-        val messageBaselineY = messageTopY - textBounds.top
-        canvas.drawTextLine(messageLine, messageX, messageBaselineY, textPaint)
+        // sender
+        val senderBaselineY = innerTop - fontAscent()
+        canvas.drawTextLine(TextLine.make(sender, font), innerX, senderBaselineY, textPaint)
+
+        // message
+        val messageParagraphWidth = bubbleW - padding * 4
+        val messageParagraph = createParagraph(text, messageParagraphWidth)
+
+        val messageTopY = innerTop + senderBlockHeight() + senderMsgGap
+        messageParagraph.paint(canvas, innerX, messageTopY)
     }
-
 
     fun measureDialogSize(message: Pair<QuoteUser, TdApi.Message>): Pair<Float, Float> {
         val sender = message.first.fullName
-        val senderTextSize = font.measureText(sender)
-        val textSize = font.measureText((message.second.content as TdApi.MessageText).text.text)
+        val text = (message.second.content as TdApi.MessageText).text.text
 
-        val bubbleW = maxOf(senderTextSize.width, textSize.width) + padding * (2 + 2) // leftPadding + rightPadding
+        val maxContentWidth = maxBubbleWidth - padding * 4
+
+        val wrappedParagraph = createParagraph(text, maxContentWidth)
+        val intrinsicWidth = minOf(wrappedParagraph.maxIntrinsicWidth, maxContentWidth)
+
+        val senderWidth = font.measureText(sender).width
+        val contentWidth = minOf(maxContentWidth, max(senderWidth, intrinsicWidth))
+
+        val textParagraph =
+            if (contentWidth == maxContentWidth) wrappedParagraph else createParagraph(text, contentWidth)
+
+        val bubbleW = contentWidth + padding * 4
         val bubbleH =
-            senderTextSize.height + textSize.height + padding * (2 + 1 + 2) // topPadding + between + bottomPadding
+            (padding * 2) +
+                    senderBlockHeight() +
+                    senderMsgGap +
+                    textParagraph.height +
+                    (padding * 2)
 
         return Pair(bubbleW, bubbleH)
     }
@@ -156,14 +196,10 @@ class QuoteDraw(private val messages: List<Pair<QuoteUser, TdApi.Message>>, font
     fun encodeWebp(quality: Int = 100): Data {
         val size = measureFullSize()
         val info = ImageInfo.makeN32Premul(size.first.toInt(), size.second.toInt())
-//        val info = ImageInfo.makeN32Premul(512, 1000)
         println("size: height=${size.second} width=${size.first}")
         Surface.makeRaster(info).use { surface ->
-
             canvas = surface.canvas
-
             render()
-
             surface.flushAndSubmit()
             surface.makeImageSnapshot().use { img ->
                 return img.encodeToData(EncodedImageFormat.WEBP, quality)
