@@ -78,13 +78,12 @@ class QuoteDraw(private val messages: List<Pair<QuoteUser, TdApi.Message>>, font
         }
 
         val ch = user.fullName.first().toString()
-        val w = font.measureText(ch).width
-        val textX = centerX - w / 2f
+        val textLine = TextLine.make(ch, font)
+        val bounds = font.measureText(ch)
+        val textX = centerX - (bounds.width / 2f) - bounds.left
+        val baselineY = centerY - (bounds.top + bounds.bottom) / 2f
 
-        val fm = font.metrics
-        val baselineY = centerY - (fm.ascent + fm.descent) / 2f
-
-        canvas.drawTextLine(TextLine.make(ch, font), textX, baselineY, textPaint)
+        canvas.drawTextLine(textLine, textX, baselineY, textPaint)
     }
 
     private fun createParagraph(text: String, width: Float): Paragraph {
